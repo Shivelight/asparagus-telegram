@@ -42,7 +42,9 @@ CONFIG = {
     "API_TOKEN": "YOUR_BOT_API_TOKEN",
     "CHAT_ID": "YOUR_CHANNEL_ID",
     "LAST_NEWS": 0,
+    "LAST_NEWS_TITLE": "",
     "LAST_PKG_UPDATE_ALL": 0,
+    "LAST_PKG_UPDATE_ALL_TITLE": "",
     "INTERVAL": 60 * 5,
 }
 
@@ -60,7 +62,10 @@ def fetch_news():
     feed = feedparser.parse(FEED_NEWS)
     for entry in reversed(feed.entries):
         published = time.mktime(entry.published_parsed)
-        if published >= CONFIG["LAST_NEWS"]:
+        if (
+            published >= CONFIG["LAST_NEWS"]
+            and entry.title != CONFIG["LAST_NEWS_TITLE"]
+        ):
             text = NEWS_TMPL.format(
                 date=entry.published,
                 link=entry.link,
@@ -77,11 +82,9 @@ def fetch_news():
             result = post("sendMessage", params=msg)["result"]
             log.debug(f"{result}")
             CONFIG["LAST_NEWS"] = published
+            CONFIG["LAST_NEWS_TITLE"] = entry.title
             log.info(f'News: "{entry.title}" pushed')
-            pin = {
-                "chat_id": CONFIG["CHAT_ID"],
-                "message_id": result["message_id"]
-            }
+            pin = {"chat_id": CONFIG["CHAT_ID"], "message_id": result["message_id"]}
             post("pinChatMessage", params=pin)
             log.info(f'News: "{entry.title}" pinned')
 
@@ -90,7 +93,10 @@ def fetch_pkg_update():
     feed = feedparser.parse(FEED_PKG_UPDATE_ALL)
     for entry in reversed(feed.entries):
         published = time.mktime(entry.published_parsed)
-        if published >= CONFIG["LAST_PKG_UPDATE_ALL"]:
+        if (
+            published >= CONFIG["LAST_PKG_UPDATE_ALL"]
+            and entry.title != CONFIG["LAST_PKG_UPDATE_ALL_TITLE"]
+        ):
             category = ", ".join(tag["term"] for tag in entry.tags)
             text = PKG_UPDATE_TMPL.format(
                 date=entry.published,
@@ -108,6 +114,7 @@ def fetch_pkg_update():
             }
             post("sendMessage", params=msg)
             CONFIG["LAST_PKG_UPDATE_ALL"] = published
+            CONFIG["LAST_PKG_UPDATE_ALL_TITLE"] = entry.title
             log.info(f'Package: "{entry.title}" pushed')
 
 
