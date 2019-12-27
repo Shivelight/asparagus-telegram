@@ -60,7 +60,7 @@ def fetch_news():
     feed = feedparser.parse(FEED_NEWS)
     for entry in reversed(feed.entries):
         published = time.mktime(entry.published_parsed)
-        if published > CONFIG["LAST_NEWS"]:
+        if published >= CONFIG["LAST_NEWS"]:
             text = NEWS_TMPL.format(
                 date=entry.published,
                 link=entry.link,
@@ -90,7 +90,7 @@ def fetch_pkg_update():
     feed = feedparser.parse(FEED_PKG_UPDATE_ALL)
     for entry in reversed(feed.entries):
         published = time.mktime(entry.published_parsed)
-        if published > CONFIG["LAST_PKG_UPDATE_ALL"]:
+        if published >= CONFIG["LAST_PKG_UPDATE_ALL"]:
             category = ", ".join(tag["term"] for tag in entry.tags)
             text = PKG_UPDATE_TMPL.format(
                 date=entry.published,
