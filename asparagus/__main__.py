@@ -19,6 +19,8 @@ try:
     os.mkdir("logs")
 except FileExistsError:
     pass
+
+
 log_formatter = logging.Formatter(
     "[%(asctime)s][%(levelname)s] %(message)s", "%Y-%m-%d %H:%M:%S"
 )
@@ -26,6 +28,7 @@ log = logging.getLogger("asparagus")
 log.setLevel(logging.DEBUG)
 __streamlog = logging.StreamHandler()
 __streamlog.setFormatter(log_formatter)
+__streamlog.setLevel(logging.INFO)  # Stream should ignore DEBUG
 __filelog = logging.handlers.TimedRotatingFileHandler(
     f"logs/asparagus.log", when="d", backupCount=5
 )
@@ -71,9 +74,16 @@ def fetch_news():
                 "text": text,
                 "parse_mode": "HTML",
             }
-            post("sendMessage", params=msg)
+            result = post("sendMessage", params=msg)["result"]
+            log.debug(f"{result}")
             CONFIG["LAST_NEWS"] = published
             log.info(f'News: "{entry.title}" pushed')
+            pin = {
+                "chat_id": CONFIG["CHAT_ID"],
+                "message_id": result["message_id"]
+            }
+            post("pinChatMessage", params=pin)
+            log.info(f'News: "{entry.title}" pinned')
 
 
 def fetch_pkg_update():
