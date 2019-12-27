@@ -114,13 +114,12 @@ def load_config():
             conf = json.load(file)
             CONFIG.update(conf)
     except (FileNotFoundError, KeyError):
-        save_config()
         log.info(f"Creating {os.getcwd()}/config.json")
         log.info('Please setup your "config.json" file before restarting.')
-        sys.exit(1)
+        terminate()
 
 
-def save_config(sig=None, frame=None):
+def save_config():
     with open("config.json", "w+") as file:
         json.dump(CONFIG, file, indent=4)
 
@@ -136,7 +135,6 @@ def run():
     pid = str(os.getpid())
     if os.path.isfile(PID_FILE):
         log.error(f"{PID_FILE} already exists. Exiting..")
-        sys.exit()
     with open(PID_FILE, "w") as file:
         file.write(pid)
 
