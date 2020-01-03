@@ -116,6 +116,7 @@ def fetch_pkg_update():
                 "chat_id": CONFIG["CHAT_ID"],
                 "text": text,
                 "parse_mode": "HTML",
+                "disable_notification": True
             }
             post("sendMessage", params=msg)
             CONFIG["LAST_PKG_UPDATE_ALL"] = published
